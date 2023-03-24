@@ -38,13 +38,13 @@ int resetCount = 0;
 
 int b = 0; //0 = false, 1 = true
 
-  void setup() {
-    // initialize screen
-    tft.init();
-    tft.setRotation(1);
-    pinMode(JOYSTICK_BUTTON_PIN, INPUT); // 0 = button is pressed, 1 = button is not pressed
-    digitalWrite(JOYSTICK_BUTTON_PIN, HIGH); 
-  }
+void setup() {
+  // initialize screen
+  tft.init();
+  tft.setRotation(1);
+  pinMode(JOYSTICK_BUTTON_PIN, INPUT); // 0 = button is pressed, 1 = button is not pressed
+  digitalWrite(JOYSTICK_BUTTON_PIN, HIGH); 
+}
 
 void endMenu() {
     // End the game
@@ -64,6 +64,12 @@ void endMenu() {
 }
 
 void startMenu() {
+    score = 0;
+    playerLives = 1;
+    int playerX = SCREEN_WIDTH / 2;
+    int playerY = SCREEN_HEIGHT - PLAYER_HEIGHT - 10;
+    rectangleX = random(0, SCREEN_WIDTH - RECTANGLE_WIDTH);
+    rectangleY = 0;
     tft.fillScreen(TFT_BLUE);
     tft.setTextSize(4);
     tft.setTextColor(TFT_WHITE);
@@ -74,14 +80,38 @@ void startMenu() {
       if (digitalRead(JOYSTICK_BUTTON_PIN) == 0){
         b = 1;
         break;
+    gameOver = false;
     }
 }
 }
+
+void ballFall(){
+
+  // Draw the falling rectangle
+  tft.fillRoundRect(rectangleX, rectangleY, RECTANGLE_WIDTH, RECTANGLE_HEIGHT, 5, TFT_RED);
+
+  // Update the falling rectangle position
+  rectangleY += rectangleSpeed;
+  if (rectangleY >= SCREEN_HEIGHT) { // check to see if rectangle has hit the bottom of the screen
+    if (rectangleX + RECTANGLE_WIDTH >= playerX && rectangleX <= playerX + PLAYER_WIDTH) {
+      score++;
+      rectangleX = random(0, SCREEN_WIDTH - RECTANGLE_WIDTH);
+      rectangleY = 0;
+    }
+    else {
+      rectangleX = random(0, SCREEN_WIDTH - RECTANGLE_WIDTH);
+      rectangleY = 0;
+      gameOver = true;
+    }
+  }
+}
+
 
   void loop() {
   b = 0;    
   startMenu();
   delay (1000);
+  tft.fillScreen(TFT_BLACK);
   while (b = 1) {  // Clear the screen
     if (digitalRead(JOYSTICK_BUTTON_PIN) == 0) {
       endMenu();
@@ -89,7 +119,6 @@ void startMenu() {
       break;
     }
     else {
-      tft.fillScreen(TFT_BLACK);
 
       // read input from joystick and move player
       int joystickX = analogRead(JOYSTICK_X_PIN);
@@ -106,23 +135,7 @@ void startMenu() {
         playerX = min(playerX + playerSpeed, SCREEN_WIDTH - PLAYER_WIDTH);
       }
 
-      // Draw the falling rectangle
-      tft.fillRoundRect(rectangleX, rectangleY, RECTANGLE_WIDTH, RECTANGLE_HEIGHT, 5, TFT_RED);
-
-      // Update the falling rectangle position
-      rectangleY += rectangleSpeed;
-      if (rectangleY >= SCREEN_HEIGHT) { // check to see if rectangle has hit the bottom of the screen
-        if (rectangleX + RECTANGLE_WIDTH >= playerX && rectangleX <= playerX + PLAYER_WIDTH) {
-          score++;
-          rectangleX = random(0, SCREEN_WIDTH - RECTANGLE_WIDTH);
-          rectangleY = 0;
-        }
-        else {
-          rectangleX = random(0, SCREEN_WIDTH - RECTANGLE_WIDTH);
-          rectangleY = 0;
-          gameOver = true;
-        }
-      }
+      ballFall();
 
       // Display the score
       tft.setCursor(0, 0);
@@ -134,8 +147,10 @@ void startMenu() {
       tft.print(playerLives);
 
       // Check for game over
-      if (gameOver) {
+      if (gameOver) { 
+        gameOver = false;        
         endMenu();
+
       }
 
       // Read the pin for the button in the joystick, and if pressed add one to resetCount. Otherwise, reset it to 0.
