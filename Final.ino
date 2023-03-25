@@ -17,7 +17,7 @@ const int RECTANGLE_HEIGHT = 10;
 int playerX = SCREEN_WIDTH / 2;
 int playerY = SCREEN_HEIGHT - PLAYER_HEIGHT - 10;
 int score = 0;
-int playerLives = 1;
+int playerLives = 3;
 
 // define variables for joystick pins and thresholds
 const int JOYSTICK_X_PIN = A7;
@@ -28,8 +28,8 @@ const int JOYSTICK_Y_THRESHOLD = 10;
 // define variables for falling rectangle position and speed
 int rectangleX = 0;
 int rectangleY = 0;
-int rectangleSpeed = 30;
-int playerSpeed = 50;
+int playerSpeed = 8;
+float rectangleSpeed = 5;
 
 // game state
 int gameOver = false;
@@ -65,7 +65,8 @@ void endMenu() {
 
 void startMenu() {
     score = 0;
-    playerLives = 1;
+    playerLives = 3;
+    rectangleSpeed = 5;
     int playerX = SCREEN_WIDTH / 2;
     int playerY = SCREEN_HEIGHT - PLAYER_HEIGHT - 10;
     rectangleX = random(0, SCREEN_WIDTH - RECTANGLE_WIDTH);
@@ -86,9 +87,8 @@ void startMenu() {
 }
 
 void ballFall(){
-
-  // Draw the falling rectangle
-  tft.fillRoundRect(rectangleX, rectangleY, RECTANGLE_WIDTH, RECTANGLE_HEIGHT, 5, TFT_RED);
+  // Erase the falling rectangle
+  tft.fillRoundRect(rectangleX, rectangleY, RECTANGLE_WIDTH, RECTANGLE_HEIGHT, 5, TFT_BLACK);
 
   // Update the falling rectangle position
   rectangleY += rectangleSpeed;
@@ -101,18 +101,35 @@ void ballFall(){
     else {
       rectangleX = random(0, SCREEN_WIDTH - RECTANGLE_WIDTH);
       rectangleY = 0;
-      gameOver = true;
+      playerLives += -1;
+      rectangleSpeed -= -2;
+      if (playerLives == 0){
+        gameOver = true;
+      }
+      
     }
+
+  
   }
+
+  // Draw the falling rectangle
+  tft.fillRoundRect(rectangleX, rectangleY, RECTANGLE_WIDTH, RECTANGLE_HEIGHT, 5, TFT_RED);
+
 }
 
 
-  void loop() {
+void loop() {
   b = 0;    
   startMenu();
   delay (1000);
   tft.fillScreen(TFT_BLACK);
-  while (b = 1) {  // Clear the screen
+
+  while (true){
+
+    if (playerLives == 3){
+      rectangleSpeed = rectangleSpeed;
+    }
+
     if (digitalRead(JOYSTICK_BUTTON_PIN) == 0) {
       endMenu();
       b = 0;
@@ -124,8 +141,9 @@ void ballFall(){
       int joystickX = analogRead(JOYSTICK_X_PIN);
       int joystickY = analogRead(JOYSTICK_Y_PIN);
 
-      // Draw the player
-      tft.fillRoundRect(playerX, playerY, PLAYER_WIDTH, PLAYER_HEIGHT, 5, TFT_BLUE);
+      // Erase the Player
+
+      tft.fillRoundRect(playerX, playerY, PLAYER_WIDTH, PLAYER_HEIGHT, 5, TFT_BLACK);
 
       // Update the player position based on joystick input
       if (joystickX < 512 - JOYSTICK_X_THRESHOLD) {
@@ -134,8 +152,22 @@ void ballFall(){
       else if (joystickX > 512 + JOYSTICK_X_THRESHOLD) {
         playerX = min(playerX + playerSpeed, SCREEN_WIDTH - PLAYER_WIDTH);
       }
+      
+      // Draw the player
+      tft.fillRoundRect(playerX, playerY, PLAYER_WIDTH, PLAYER_HEIGHT, 5, TFT_BLUE);
 
+
+      
       ballFall();
+
+      // erase the score
+      tft.setCursor(0, 0);
+      tft.setTextColor(TFT_BLACK);
+      tft.setTextSize(2);
+      tft.print("       ");
+      tft.print(score);
+
+
 
       // Display the score
       tft.setCursor(0, 0);
