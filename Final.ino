@@ -5,6 +5,10 @@
 // initialize screen module
 TFT_eSPI tft = TFT_eSPI();
 
+// battery sensor variables
+
+
+
 // define constants for screen dimensions and player/rectangle sizes
 const int SCREEN_WIDTH = 480;
 const int SCREEN_HEIGHT = 320;
@@ -30,6 +34,10 @@ int rectangleX = 0;
 int rectangleY = 0;
 int playerSpeed = 8;
 float rectangleSpeed = 5;
+
+// Drawing Variables
+int checkLives;
+int checkScore;
 
 // game state
 int gameOver = false;
@@ -71,11 +79,21 @@ void startMenu() {
     int playerY = SCREEN_HEIGHT - PLAYER_HEIGHT - 10;
     rectangleX = random(0, SCREEN_WIDTH - RECTANGLE_WIDTH);
     rectangleY = 0;
-    tft.fillScreen(TFT_BLUE);
+    tft.fillScreen(TFT_BLACK);
     tft.setTextSize(4);
     tft.setTextColor(TFT_WHITE);
-    tft.print("INTERCOSMIC INVADERS!");
-    tft.setCursor(SCREEN_WIDTH / 5 - 40, SCREEN_HEIGHT / 5 + 10);
+    tft.setCursor(SCREEN_WIDTH / 5 + 40, SCREEN_HEIGHT / 5 + 10);
+    tft.print("CATCHER!");
+    tft.setCursor(0, 130);
+    tft.setTextSize(2);
+    tft.println("Catch the red balls with your blue board ");
+    tft.println("to earn points, control your board ");
+    tft.println("using the joystick. Reset the game ");
+    tft.println("anytime by pressing down on the joystick.");
+    tft.setCursor(0, 220);
+    tft.print("Have fun, and don't let the balls drop!");
+    tft.setTextSize(2);
+    tft.setCursor(0, SCREEN_HEIGHT / 5 + 200);
     tft.print("Press Joystick To Play.....");
     while (true){
       if (digitalRead(JOYSTICK_BUTTON_PIN) == 0){
@@ -83,16 +101,17 @@ void startMenu() {
         break;
     gameOver = false;
     }
-}
+  }
 }
 
 void ballFall(){
   // Erase the falling rectangle
-  tft.fillRoundRect(rectangleX, rectangleY, RECTANGLE_WIDTH, RECTANGLE_HEIGHT, 5, TFT_BLACK);
-
+  tft.fillRoundRect(rectangleX, rectangleY, RECTANGLE_WIDTH, RECTANGLE_HEIGHT, 5, TFT_BLACK);  
+  checkLives = playerLives; // var for drawing lives
+  checkScore = score;
   // Update the falling rectangle position
   rectangleY += rectangleSpeed;
-  if (rectangleY >= SCREEN_HEIGHT) { // check to see if rectangle has hit the bottom of the screen
+  if (rectangleY >= SCREEN_HEIGHT - 20) { // check to see if rectangle has hit the bottom of the screen
     if (rectangleX + RECTANGLE_WIDTH >= playerX && rectangleX <= playerX + PLAYER_WIDTH) {
       score++;
       rectangleX = random(0, SCREEN_WIDTH - RECTANGLE_WIDTH);
@@ -119,12 +138,20 @@ void ballFall(){
 
 
 void loop() {
+
   b = 0;    
   startMenu();
   delay (1000);
   tft.fillScreen(TFT_BLACK);
 
   while (true){
+
+    // battery variables
+    int sensorValue = analogRead(A0);
+    // Convert the analog reading (which goes from 0 - 1023) to a voltage (0 - 9V):
+    float voltage = sensorValue * (9.0 / 1023.0);
+    float batteryPercentage = voltage / 9.0 * 100;
+    float initialBattery;
 
     if (playerLives == 3){
       rectangleSpeed = rectangleSpeed;
@@ -160,39 +187,65 @@ void loop() {
       
       ballFall();
 
-      // erase the score
-      tft.setCursor(0, 0);
+      int previousScore = score - 1;
+      int previousLives = playerLives + 1;
+
+      // erase the score, lives, battery
+     
       tft.setTextColor(TFT_BLACK);
       tft.setTextSize(2);
-      tft.print("       ");
-      tft.print(score);
+      tft.setCursor(80, 0);
+      if (score != checkScore){
+        tft.print(previousScore);
+      }
+      tft.setCursor(460, 0);
+      if (playerLives != checkLives){
+        tft.print(previousLives);
+      }
+      tft.setCursor(200, 0);
+      if (initialBattery != batteryPercentage){
+        tft.print(initialBattery);
+      }
 
+      
 
-
-      // Display the score
+      // Display the score, lives, battery
       tft.setCursor(0, 0);
       tft.setTextColor(TFT_WHITE);
       tft.setTextSize(2);
       tft.print("Score: ");
+      tft.setCursor(80, 0);
       tft.print(score);
-      tft.print("               Player Lives: ");
+      tft.setCursor(0, 0);
+      tft.print("                      Player Lives: ");
+      tft.setCursor(460, 0);
       tft.print(playerLives);
+      tft.setCursor(200, 0);
+      tft.print(batteryPercentage);      
+
+      
 
       // Check for game over
       if (gameOver) { 
         gameOver = false;        
         endMenu();
+        break;
 
       }
 
       // Read the pin for the button in the joystick, and if pressed add one to resetCount. Otherwise, reset it to 0.
-      if (digitalRead(JOYSTICK_BUTTON_PIN) == 0) resetCount += 1;
-      else resetCount = 0;
+      if (digitalRead(JOYSTICK_BUTTON_PIN) == 0){
+        resetCount += 1;
+      }
+      else{
+        resetCount = 0;
+      }
+
 
       // If the button has been held for around a second, reset the canvas.
       if (resetCount > 1) {
         tft.fillScreen(TFT_WHITE);
-        playerLives = 1; // reset player lives
+        playerLives = 3; // reset player lives
         score = 0; // reset player score
       }
 
