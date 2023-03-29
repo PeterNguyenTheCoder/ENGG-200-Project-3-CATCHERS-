@@ -142,16 +142,25 @@ void loop() {
   b = 0;    
   startMenu();
   delay (1000);
+  int sensorValue = analogRead(A0);
+  // Convert the analog reading (which goes from 0 - 1023) to a voltage (0 - 9V):
+  float voltage = sensorValue * (9.0 / 1023.0);
+  float batteryPercentage = voltage / 9.0 * 100;
+  float initialBattery;
   tft.fillScreen(TFT_BLACK);
+  tft.setCursor(150, 0);
+  tft.setTextColor(TFT_WHITE);
+  tft.print(batteryPercentage);
+  tft.print("%");
+  tft.setCursor(0, 0);
+  
+   
+
 
   while (true){
 
     // battery variables
-    int sensorValue = analogRead(A0);
-    // Convert the analog reading (which goes from 0 - 1023) to a voltage (0 - 9V):
-    float voltage = sensorValue * (9.0 / 1023.0);
-    float batteryPercentage = voltage / 9.0 * 100;
-    float initialBattery;
+
 
     if (playerLives == 3){
       rectangleSpeed = rectangleSpeed;
@@ -198,7 +207,7 @@ void loop() {
       if (score != checkScore){
         tft.print(previousScore);
       }
-      tft.setCursor(460, 0);
+      tft.setCursor(420, 0);
       if (playerLives != checkLives){
         tft.print(previousLives);
       }
@@ -218,10 +227,8 @@ void loop() {
       tft.print(score);
       tft.setCursor(0, 0);
       tft.print("                      Player Lives: ");
-      tft.setCursor(460, 0);
+      tft.setCursor(420, 0);
       tft.print(playerLives);
-      tft.setCursor(200, 0);
-      tft.print(batteryPercentage);      
 
       
 
