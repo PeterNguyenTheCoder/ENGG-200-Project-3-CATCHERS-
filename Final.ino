@@ -31,7 +31,7 @@ const int JOYSTICK_Y_THRESHOLD = 10;
 
 // define variables for falling rectangle position and speed
 int rectangleX = 0;
-int rectangleY = 0;
+int rectangleY = 30;
 int playerSpeed = 8;
 float rectangleSpeed = 5;
 
@@ -115,11 +115,11 @@ void ballFall(){
     if (rectangleX + RECTANGLE_WIDTH >= playerX && rectangleX <= playerX + PLAYER_WIDTH) {
       score++;
       rectangleX = random(0, SCREEN_WIDTH - RECTANGLE_WIDTH);
-      rectangleY = 0;
+      rectangleY = 30;
     }
     else {
       rectangleX = random(0, SCREEN_WIDTH - RECTANGLE_WIDTH);
-      rectangleY = 0;
+      rectangleY = 30;
       playerLives += -1;
       rectangleSpeed -= -2;
       if (playerLives == 0){
@@ -146,12 +146,13 @@ void loop() {
   // Convert the analog reading (which goes from 0 - 1023) to a voltage (0 - 9V):
   float voltage = sensorValue * (9.0 / 1023.0);
   float batteryPercentage = voltage / 9.0 * 100;
+  int batteryDisplay = int(batteryPercentage);
   float initialBattery;
   tft.fillScreen(TFT_BLACK);
-  tft.setCursor(150, 0);
+  tft.setCursor(120, 0);
   tft.setTextColor(TFT_WHITE);
-  tft.print(batteryPercentage);
-  tft.print("%");
+  tft.print("Battery %:"); 
+  tft.print(batteryDisplay);
   tft.setCursor(0, 0);
   
    
@@ -207,7 +208,7 @@ void loop() {
       if (score != checkScore){
         tft.print(previousScore);
       }
-      tft.setCursor(420, 0);
+      tft.setCursor(465, 0);
       if (playerLives != checkLives){
         tft.print(previousLives);
       }
@@ -226,8 +227,8 @@ void loop() {
       tft.setCursor(80, 0);
       tft.print(score);
       tft.setCursor(0, 0);
-      tft.print("                      Player Lives: ");
-      tft.setCursor(420, 0);
+      tft.print("                          Player Lives: ");
+      tft.setCursor(465, 0);
       tft.print(playerLives);
 
       
@@ -257,7 +258,7 @@ void loop() {
       }
 
       // Wait a short time before repeating the loop
-      delay(1);
+      delay(0);
     }
   }
   }
